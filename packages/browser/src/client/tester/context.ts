@@ -323,6 +323,9 @@ export const page: BrowserPage = {
   _createLocator() {
     throw new Error(`Method "_createLocator" is not implemented in the "${provider}" provider.`)
   },
+  createFramePage(frameElement: Element | Locator) {
+    throw new Error(`Method "createFramePage" is not implemented in the "${provider}" provider.`)
+  },
   extend(methods) {
     for (const key in methods) {
       (page as any)[key] = (methods as any)[key].bind(page)

@@ -87,6 +87,12 @@ export const page: {
    * Wrap an HTML element in a `Locator`. When querying for elements, the search will always return this element.
    */
   elementLocator(element: Element): Locator
+  /**
+   * Create a new page object from an iframe element.
+   * @param frameElement The iframe element or locator to create a page object for
+   * @returns A new BrowserPage instance scoped to the iframe
+   */
+  createFramePage(frameElement: Element | Locator): BrowserPage
 
   /**
    * Locator APIs. See its documentation for more details.

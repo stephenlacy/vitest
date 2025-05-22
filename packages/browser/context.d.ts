@@ -578,6 +578,12 @@ export interface BrowserPage extends LocatorSelectors {
    * @see {@link https://vitest.dev/guide/browser/locators}
    */
   elementLocator(element: Element): Locator
+  /**
+   * Creates a new page object that allows interacting with elements inside an iframe.
+   * @param frameElement The iframe element or a locator pointing to an iframe element
+   * @returns A new page object scoped to the iframe's document
+   */
+  createFramePage(frameElement: Element | Locator): BrowserPage
 }
 
 export interface BrowserLocators {

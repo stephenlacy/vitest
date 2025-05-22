@@ -1,4 +1,4 @@
-import type { UserEventClearOptions, UserEventClickOptions, UserEventDragAndDropOptions, UserEventFillOptions, UserEventHoverOptions, UserEventSelectOptions, UserEventUploadOptions } from '@vitest/browser/context'
+import type { BrowserPage, UserEventClearOptions, UserEventClickOptions, UserEventDragAndDropOptions, UserEventFillOptions, UserEventHoverOptions, UserEventSelectOptions, UserEventUploadOptions } from '@vitest/browser/context'
 import { page, server } from '@vitest/browser/context'
 import {
   getByAltTextSelector,
@@ -43,6 +43,63 @@ page.extend({
       selectorEngine.generateSelectorSimple(element),
       element,
     )
+  },
+
+  // iframe support
+  createFramePage(frameElement: Element | Locator) {
+    const iframeElement = frameElement instanceof Element ? frameElement : frameElement.element()
+    if (!(iframeElement instanceof HTMLIFrameElement)) {
+      throw new TypeError('Expected frameElement to be an iframe element')
+    }
+
+    const iframeDocument = iframeElement.contentWindow?.document || iframeElement.contentDocument
+    if (!iframeDocument) {
+      throw new Error('Could not access iframe content document')
+    }
+
+    function createIframeLocator(selector: string): Locator {
+      const baseLocator = new PlaywrightLocator(selector)
+
+      const locator = Object.create(baseLocator) as Locator
+
+      locator.query = function (): Element | null {
+        const parsedSelector = selectorEngine.parseSelector(selector)
+        if (iframeDocument) {
+          return selectorEngine.querySelector(parsedSelector, iframeDocument.documentElement, true)
+        }
+        return null
+      }
+
+      locator.elements = function (): Element[] {
+        const parsedSelector = selectorEngine.parseSelector(selector)
+        if (iframeDocument) {
+          return selectorEngine.querySelectorAll(parsedSelector, iframeDocument.documentElement)
+        }
+        return []
+      }
+
+      return locator
+    }
+
+    const framePage = Object.create(page) as BrowserPage
+
+    framePage._createLocator = createIframeLocator
+    framePage.getByRole = (role, options) =>
+      createIframeLocator(getByRoleSelector(role, options))
+    framePage.getByLabelText = (text, options) =>
+      createIframeLocator(getByLabelSelector(text, options))
+    framePage.getByTestId = testId =>
+      createIframeLocator(getByTestIdSelector(server.config.browser.locators.testIdAttribute, testId))
+    framePage.getByAltText = (text, options) =>
+      createIframeLocator(getByAltTextSelector(text, options))
+    framePage.getByPlaceholder = (text, options) =>
+      createIframeLocator(getByPlaceholderSelector(text, options))
+    framePage.getByText = (text, options) =>
+      createIframeLocator(getByTextSelector(text, options))
+    framePage.getByTitle = (title, options) =>
+      createIframeLocator(getByTitleSelector(title, options))
+
+    return framePage
   },
 })
 
